@@ -1,0 +1,321 @@
+---
+title: "Analytics & IoT"
+output: 
+  flexdashboard::flex_dashboard:
+    storyboard: true
+  
+---
+
+```{r, echo = FALSE, comment = FALSE}
+
+### .sbframe-commentary - html doc color comments box
+### .storyboard-nav .sbframelist ul li.active - html box selected between navbar and graphs
+### chart-wrapper, .nav-tabs-custom, .sbframe-commentary - frame of the graphs box
+### .navbar-inverse{background-color:#123808 - top navbar color
+
+library(shiny)
+library(shinydashboard)
+library(shinydashboardPlus)
+
+navbarPage("Home",
+  tabPanel("Google Analytics"),
+  navbarMenu("More",
+    tabPanel("Support"),
+    "----",
+    "Insights",
+    tabPanel("More Tools"),
+    tabPanel("Advanced Statistics")
+  )
+)
+
+
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+library(plotly)
+library(readxl)
+library(tibble)
+library(dplyr)
+library(viridis)
+
+
+
+Motors <- read_xlsx("/Users/wemigliari/Documents/R/tabelas/motors.xlsx")
+test <- mtcars
+test <- rownames_to_column(test, var = "model") %>% as_tibble()
+
+Motors <- data.frame(test)
+
+```
+
+### Overview
+    
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+
+plot_ly(Motors, x = Motors$model, y = Motors$mpg, name = "mpg", type = 'scatter', 
+        mode = 'markers', colors = 'Blues',
+        marker = list(size = Motors$mpg, opacity = 0.9, reversescale = TRUE, visible = FALSE))%>% 
+  add_markers(y = Motors$hp, name = "hp", colors = 'Blues', 
+              marker = list(size = Motors$hp/10, opacity = 0.9), visible = FALSE)%>%
+  add_markers(y = Motors$gear, name = "gear", colors = 'Blues',
+              marker = list(size = 10, opacity = 0.9), visible = FALSE)%>%
+  layout(yaxis = list(title = ''),
+         showlegend = FALSE,
+         updatemenus = list(
+           list(
+             y = 0.7,
+             buttons = list(
+               list(method = "update",
+                    args = list(list(visible = list(TRUE, FALSE, FALSE)),
+                                list(yaxis = list(title = "mpg"))),
+                    label = "mpg"),
+               
+               list(method = "update",
+                    args = list(list(visible = list(FALSE, TRUE, FALSE)),
+                                list(yaxis = list(title = "hp"))),
+                    label = "hp"),
+               
+               list(method = "update",
+                    args = list(list(visible =  list(FALSE, FALSE, TRUE)),
+                                list(yaxis = list(title = "gear"))),
+                    label = "gear")))
+         ))
+
+
+```
+
+
+---
+
+_Instructions & Definitions_
+
+- mpg:	Miles/US Gallon	mpg is the determinant of fuel efficiency.
+
+- hp:	Gross horsepower.	Gross horsepower measures the theoretical output of an engine’s power output; notably, gross rating is of the engine in an isolated environment outside any specific vehicle. 
+
+- gear:	Number of forward gears	Number of gears in the transmission. Manual transmissions have either 4 or 5 forward gears; Automatic either 3 or 4.
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+
+### Comparison
+    
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+
+plot_ly(Motors, x = Motors$model, y = Motors$disp,
+        type = "bar", colors = I("steelblue"), name = "disp")%>%
+  add_trace(y= Motors$hp,  name = "hp", visible = TRUE)%>%
+  add_trace(y= Motors$cyl, name = "cyl", visible = TRUE)%>%
+  add_trace(y= Motors$drat, name = "drat", visible = TRUE)%>%
+  add_trace(y= Motors$wt, name = "wt", visible = TRUE)%>%
+  add_trace(y= Motors$mpg, name = "mpg", visible = TRUE)%>%
+  add_lines(y = Motors$qsec, name = "qsec", visible = TRUE)%>%
+    layout(yaxis = list(title = ''),
+           barmode = "stack",
+           showlegend = FALSE,
+           updatemenus = list(
+             list(
+               y = 0.7,
+               buttons = list(
+                 list(method = "update",
+                      args = list(list(visible = list(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE)),
+                                  list(yaxis = list(title = "All"))),
+                      label = "All"),
+                 
+                 list(method = "update",
+                      args = list(list(visible = list(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE)),
+                                  list(yaxis = list(title = "dip"))),
+                      label = "disp & hp"),
+                 
+                 list(method = "update",
+                      args = list(list(visible = list(FALSE, FALSE, TRUE, TRUE, FALSE, FALSE, TRUE)),
+                                  list(yaxis = list(title = "cyl"))),
+                      label = "cyl & drat"),
+                 
+                 list(method = "update",
+                      args = list(list(visible =  list(FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE)),
+                                  list(yaxis = list(title = "wt"))),
+                      label = "wt & mpg")))
+           ))
+
+
+
+```
+    
+---
+
+_Instructions & Definitions_
+
+- mpg:	Miles/US Gallon	mpg is the determinant of fuel efficiency.
+
+- cyl:	Number of cylinders.	Data includes vehicles with 4,6,8 cylinder engines.
+
+- disp:	Displacement (cu.in.).	Displacement measures overall volume in the engine as a factor of cylinder circumfrance, depth and total number of cylinders. This metric gives a good proxy for the total amount of power the engine can generate.
+
+- hp:	Gross horsepower. Gross horsepower measures the theoretical output of an engine’s power output; notably, gross rating is of the engine in an isolated environment outside any specific vehicle. 
+
+- drat: Rear axle ratio.	The rear axle gear ratio indicates the number of turns of the drive shaft for every one rotation of the wheel axle. A vehicle with a high ratio would provide more torque and thus more towing capability, for example.
+
+- wt: Weight (lb/1000).	The overall weight of the vehicle per 1000lbs (half US ton).
+
+- qsec:	1/4 mile time.	A performance measure, primarily of acceleration. Fastest time to travel 1/4 mile from standstill (in seconds).
+
+
+### Details
+
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+
+plot_ly(Motors, x = Motors$model, y = Motors$carb,
+      color = I("black"), name = "carb", type = "scatter", mode = "markers")%>%
+  add_markers(y= Motors$gear, color = I("steelblue"), name = "gear", mode ="markers", visible = FALSE)%>%
+  add_markers(y= Motors$am, color = I("orange"), name = "am", mode ="markers", visible = FALSE)%>%
+  add_markers(y= Motors$vs, color = I("darkgreen"), name = "vs", mode ="markers", visible = FALSE)%>%
+  layout(yaxis = list(title = ''),
+         showlegend = FALSE,
+         updatemenus = list(
+           list(
+             y = 0.7,
+             buttons = list(
+               list(method = "update",
+                    args = list(list(visible = list(TRUE, FALSE, FALSE, FALSE)),
+                                list(yaxis = list(title = "carb"))),
+                    label = "carb"),
+               
+               list(method = "update",
+                    args = list(list(visible = list(FALSE, TRUE, FALSE, FALSE)),
+                                list(yaxis = list(title = "gear"))),
+                    label = "gear"),
+               
+               list(method = "update",
+                    args = list(list(visible = list(FALSE, FALSE, TRUE, FALSE)),
+                                list(yaxis = list(title = "am"))),
+                    label = "am"),
+               
+               list(method = "update",
+                    args = list(list(visible =  list(FALSE, FALSE, FALSE, TRUE)),
+                                list(yaxis = list(title = "vs"))),
+                    label = "vs")))
+         ))
+
+
+
+```
+
+---
+
+_Instructions & Definitions_
+
+- vs:	V/S	Binary variable signaling the engine cylinder configuration a V-shape (vs=0) or Straight Line (vs=1). V==0 and S==1. Configuration offers trade offs in power/torque, design usage in terms of space/size of engine and performance or center of gravity of vehicle. 
+
+- am:	Transmission Type.	A binary variable signaling whether vehicle has automatic (am=0) or manual (am=1) transmission configuration.
+
+- gear:	Number of forward gears.	Number of gears in the transmission. Manual transmissions have either 4 or 5 forward gears; Automatic either 3 or 4.
+
+- carb:	Number of carburetors.	The number of carburetor barrels. Engines with higher displacement typically have higher barrel configuration to accommodate the increased airflow rate of the larger engine; in other words, more capacity is available for an engine when it may need it versus constraining power output with limited barrels. 
+
+### Fraction
+    
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+ plot_ly()%>% 
+    add_pie(data = count(Motors, Motors$model), labels = Motors$model, 
+    values = Motors$mpg,
+    marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)),
+    name = "mpg",  textposition = "inside", domain = list(row = 0, column = 0))%>%
+    add_pie(data = count(Motors, Motors$model), labels = Motors$model, values = Motors$cyl,
+                         name = "cyl",  textposition = "inside", domain = list(row = 0, column = 1))%>% 
+    add_pie(data = count(Motors, Motors$model), labels = Motors$model, values = Motors$gear,
+            name = "gear",  textposition = "inside", domain = list(row = 1, column = 0))%>% 
+    add_pie(data = count(Motors, Motors$model), labels = Motors$model, values = Motors$qsec,
+            name = "qsec",  textposition = "inside", domain = list(row = 1, column = 1))%>% 
+    layout(title = "mpg, cyl, gear & qsec", showlegend = TRUE,
+                        grid=list(rows=2, columns=2),
+                        xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+
+```
+
+---
+
+_Instructions & Definitions_
+
+- mpg:	Miles/US Gallon	mpg is the determinant of fuel efficiency.
+
+- cyl:	Number of cylinders.	Data includes vehicles with 4,6,8 cylinder engines.
+
+- qsec:	1/4 mile time.	A performance measure, primarily of acceleration. Fastest time to travel 1/4 mile from standstill (in seconds).
+
+- gear:	Number of forward gears.	Number of gears in the transmission. Manual transmissions have either 4 or 5 forward gears; Automatic either 3 or 4.
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+### Descriptive Statistics
+
+```{r, echo = FALSE, warning = FALSE, comment = FALSE}
+
+library(broom)
+library(writexl)
+library(knitr)
+library(kableExtra)
+
+mpg_list <- split(Motors$mpg, Motors$cyl)
+disp_list <- split(Motors$disp, Motors$cyl)
+inline_plot <- data.frame(cyl = c(4, 6, 8), mpg_cyl = "", mpg_cyl = "",
+                          mpg_cyl = "", mpg_cyl = "",
+                          mpg_cyl = "", disp_cyl = "", disp_cyl = "")
+inline_plot %>%
+  kbl(booktabs = TRUE) %>%
+  kable_paper(full_width = FALSE) %>%
+  column_spec(2, image = spec_boxplot(mpg_list)) %>%
+  column_spec(3, image = spec_hist(mpg_list)) %>%
+  column_spec(4, image = spec_plot(mpg_list, same_lim = TRUE)) %>%
+  column_spec(5, image = spec_plot(mpg_list, same_lim = FALSE)) %>%
+  column_spec(6, image = spec_plot(mpg_list, type = "p")) %>%
+  column_spec(7, image = spec_plot(mpg_list, disp_list, type = "p")) %>%
+  column_spec(8, image = spec_plot(mpg_list, polymin = 5))%>%
+   footnote(alphabet = "R mtcars dataset ",
+           symbol = "mpg & cyl, disp & cyl ",
+           alphabet_title = "Source: ", symbol_title = "Correlation: ",
+           footnote_as_chunk = T)
+
+
+stat <- read_xlsx("/Users/wemigliari/Documents/R/tabelas/motors_stat.xlsx")
+
+kable(stat) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+
+
+
+
+```
+
+---
+
+Descriptive statistics are brief descriptive coefficients that summarize a given data set, which can be either a representation of the entire or a sample of a population. Descriptive statistics are broken down into measures of central tendency and measures of variability (spread). Measures of central tendency include the mean, median and mode, while measures of variability include standard deviation, variance, minimum and maximum variables, kurtosis, and skewness.
